@@ -15,55 +15,39 @@ import { PaywallModal } from './components/PaywallModal';
 import { SafeAccountModal } from './components/SafeAccountModal';
 import { BottomNavBar } from './components/BottomNavBar';
 import { Toast, ToastMessage } from './components/Toast';
-import { Smartphone, Monitor } from 'lucide-react';
+import { Smartphone, Monitor, Share2, Copy, X } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  // Soft Dark ON by default so the maquette soft-dark palette is immediately visible
+  const [darkMode, setDarkMode] = useState<boolean>(true);
   const [isMobileDeviceView, setIsMobileDeviceView] = useState<boolean>(false);
+  const [showMobileLinkBanner, setShowMobileLinkBanner] = useState<boolean>(false);
+  const [shareUrl, setShareUrl] = useState<string>('');
 
-  // Data states
+  // Data states — always start from maquette demo data (no stale cache)
   const [items, setItems] = useState<Item[]>(() => {
-    const saved = localStorage.getItem('vendspartout_items_v2');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return INITIAL_ITEMS;
-      }
+    try {
+      localStorage.removeItem('vendspartout_items_v2');
+      localStorage.removeItem('vendspartout_stats_v2');
+      localStorage.removeItem('vendspartout_stats_v2_soft');
+    } catch {
+      /* ignore */
     }
     return INITIAL_ITEMS;
   });
 
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  // User stats & credits
-  const [stats, setStats] = useState<UserStats>(() => {
-    const saved = localStorage.getItem('vendspartout_stats_v2');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return {
-          freeCreditsRemaining: 3,
-          maxFreeCredits: 3,
-          isPro: false,
-          totalArticles: INITIAL_ITEMS.length,
-          totalSold: INITIAL_ITEMS.filter((i) => i.status === 'sold').length,
-          totalRevenue: 65,
-          totalProfit: 45,
-        };
-      }
-    }
-    return {
-      freeCreditsRemaining: 3,
-      maxFreeCredits: 3,
-      isPro: false,
-      totalArticles: INITIAL_ITEMS.length,
-      totalSold: INITIAL_ITEMS.filter((i) => i.status === 'sold').length,
-      totalRevenue: 65,
-      totalProfit: 45,
-    };
+  // User stats — maquette v2: "2 essais restants" + Annonces (4)
+  const [stats, setStats] = useState<UserStats>({
+    freeCreditsRemaining: 2,
+    maxFreeCredits: 3,
+    isPro: false,
+    totalArticles: 4,
+    totalSold: INITIAL_ITEMS.filter((i) => i.status === 'sold').length,
+    totalRevenue: 65,
+    totalProfit: 45,
   });
 
   // Modals
@@ -80,17 +64,64 @@ export default function App() {
   }, [items]);
 
   useEffect(() => {
-    localStorage.setItem('vendspartout_stats_v2', JSON.stringify(stats));
+    localStorage.setItem('vendspartout_stats_v2_soft', JSON.stringify(stats));
   }, [stats]);
 
-  // Dark mode effect on html class
+  // Soft Dark PLUS CLAIR — palette enforced on root
   useEffect(() => {
+    const root = document.documentElement;
     if (darkMode) {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
+      root.style.backgroundColor = '#2A3544';
+      root.style.colorScheme = 'dark';
+      document.body.style.backgroundColor = '#2A3544';
+      document.body.style.color = '#F8FAFC';
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
+      root.style.backgroundColor = '#F4F7F5';
+      root.style.colorScheme = 'light';
+      document.body.style.backgroundColor = '#F4F7F5';
+      document.body.style.color = '#1e293b';
     }
   }, [darkMode]);
+
+  // Capture current URL for mobile sharing + auto mobile detection
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setShareUrl(window.location.href);
+      const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+      if (isSmallScreen) {
+        setShowMobileLinkBanner(false);
+      }
+    }
+  }, []);
+
+  const handleCopyMobileLink = async () => {
+    const url = shareUrl || (typeof window !== 'undefined' ? window.location.href : '');
+    try {
+      await navigator.clipboard.writeText(url);
+      addToast('Lien copié !', 'Colle-le dans Safari / Chrome sur ton iPhone ou Android.', 'success');
+    } catch {
+      addToast('Lien à copier', url, 'info');
+    }
+  };
+
+  const handleShareMobile = async () => {
+    const url = shareUrl || (typeof window !== 'undefined' ? window.location.href : '');
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'VendsPartout — Une photo. Des annonces prêtes.',
+          text: 'Ouvre VendsPartout sur ton téléphone',
+          url,
+        });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      handleCopyMobileLink();
+    }
+  };
 
   const addToast = (
     title: string,
@@ -193,10 +224,10 @@ export default function App() {
     setItems(INITIAL_ITEMS);
     setSelectedItem(null);
     setStats({
-      freeCreditsRemaining: 3,
+      freeCreditsRemaining: 2,
       maxFreeCredits: 3,
       isPro: false,
-      totalArticles: INITIAL_ITEMS.length,
+      totalArticles: 4,
       totalSold: INITIAL_ITEMS.filter((i) => i.status === 'sold').length,
       totalRevenue: 65,
       totalProfit: 45,
@@ -256,16 +287,23 @@ export default function App() {
       );
     }
 
+    const forceMobile = isMobileDeviceView;
+
     switch (activeTab) {
       case 'home':
         return (
           <>
-            <TopBanner darkMode={darkMode} onResetDemo={handleResetDemoData} />
+            <TopBanner
+              darkMode={darkMode}
+              onResetDemo={handleResetDemoData}
+              forceMobileLayout={forceMobile}
+            />
             <HeroSection
               darkMode={darkMode}
               onAddArticle={() => setIsCameraModalOpen(true)}
               onHowItWorks={() => setActiveTab('how-it-works')}
               onSelectPlatformPreview={handleSelectPlatformPreview}
+              forceMobileLayout={forceMobile}
             />
             <FeatureCardsGrid
               darkMode={darkMode}
@@ -276,6 +314,7 @@ export default function App() {
               }}
               onOpenNetProfitFeature={() => setActiveTab('stock')}
               onOpenSafeAccountFeature={() => setIsSafeAccountModalOpen(true)}
+              forceMobileLayout={forceMobile}
             />
           </>
         );
@@ -307,6 +346,7 @@ export default function App() {
             onMarkAsSold={handleMarkAsSold}
             onAddNew={() => setIsCameraModalOpen(true)}
             onShowToast={addToast}
+            forceMobileLayout={forceMobile}
           />
         );
 
@@ -325,6 +365,7 @@ export default function App() {
             onUpgradePro={handleUpgradePro}
             isPro={stats.isPro}
             onShowToast={addToast}
+            forceMobileLayout={forceMobile}
           />
         );
 
@@ -334,7 +375,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 overflow-x-hidden ${darkMode ? 'bg-[#1A2220] text-slate-100' : 'bg-[#F4F7F5] text-slate-800'}`}>
+    <div className={`min-h-screen transition-colors duration-200 overflow-x-hidden ${darkMode ? 'bg-[#2A3544] text-[#F8FAFC]' : 'bg-[#F4F7F5] text-slate-800'}`}>
       
       {/* Toast notifications */}
       <Toast toasts={toasts} onDismiss={handleDismissToast} />
@@ -366,30 +407,30 @@ export default function App() {
 
       {/* Optional Desktop Mobile Shell Wrapper for Testing Native App Feel */}
       {isMobileDeviceView ? (
-        <div className="py-8 px-4 flex flex-col items-center justify-center min-h-screen bg-slate-900/90">
-          <div className="mb-4 flex items-center gap-3">
+        <div className={`py-6 px-3 flex flex-col items-center justify-center min-h-screen ${darkMode ? 'bg-[#323E50]' : 'bg-slate-700/90'}`}>
+          <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
             <span className="text-white text-xs font-bold uppercase tracking-wider bg-emerald-600 px-3 py-1 rounded-full flex items-center gap-1.5">
               <Smartphone className="w-3.5 h-3.5" />
-              <span>Simulateur Application Mobile Native</span>
+              <span>Mode Mobile</span>
             </span>
             <button
               onClick={() => setIsMobileDeviceView(false)}
-              className="text-slate-300 hover:text-white text-xs font-semibold underline flex items-center gap-1"
+              className="text-slate-200 hover:text-white text-xs font-semibold underline flex items-center gap-1"
             >
               <Monitor className="w-3.5 h-3.5" />
-              <span>Quitter le mode mobile</span>
+              <span>Vue Standard</span>
             </button>
           </div>
 
-          {/* iPhone 15 Pro Physical Frame */}
-          <div className="relative w-full max-w-[420px] h-[860px] rounded-[50px] border-[10px] border-slate-800 bg-white dark:bg-[#0F1715] shadow-2xl overflow-hidden flex flex-col ring-1 ring-white/10">
-            {/* Dynamic Island */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-50 flex items-center justify-center">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-900 ml-auto mr-3 border border-slate-800" />
-            </div>
+          {/* iPhone frame — proper flex layout so bottom nav stays inside */}
+          <div
+            className={`phone-frame relative w-full max-w-[390px] h-[min(844px,92vh)] rounded-[40px] border-[8px] border-slate-800 shadow-2xl overflow-hidden flex flex-col ${
+              darkMode ? 'bg-[#2A3544]' : 'bg-white'
+            }`}
+          >
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-50 pointer-events-none" />
 
-            {/* In-Frame App Content */}
-            <div className="flex-1 overflow-y-auto pt-6 pb-20">
+            <div className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden pt-6 ${darkMode ? 'bg-[#2A3544]' : 'bg-[#F4F7F5]'}`}>
               <Header
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
@@ -398,25 +439,27 @@ export default function App() {
                 stats={stats}
                 onOpenPaywall={() => setIsPaywallModalOpen(true)}
                 onNewArticle={() => setIsCameraModalOpen(true)}
-                isMobileDeviceView={isMobileDeviceView}
+                isMobileDeviceView={true}
                 setIsMobileDeviceView={setIsMobileDeviceView}
+                annoncesCount={4}
               />
-              <main>{renderMainContent()}</main>
+              <main className="pb-20">{renderMainContent()}</main>
             </div>
 
-            {/* In-Frame Bottom Navigation */}
             <BottomNavBar
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onNewArticle={() => setIsCameraModalOpen(true)}
               stats={stats}
               darkMode={darkMode}
+              annoncesCount={4}
+              embedded
             />
           </div>
         </div>
       ) : (
         /* Standard Responsive App */
-        <div className="flex flex-col min-h-screen pb-20 md:pb-6">
+        <div className="flex flex-col min-h-screen pb-[76px] md:pb-6">
           <Header
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -427,7 +470,50 @@ export default function App() {
             onNewArticle={() => setIsCameraModalOpen(true)}
             isMobileDeviceView={isMobileDeviceView}
             setIsMobileDeviceView={setIsMobileDeviceView}
+            annoncesCount={4}
           />
+
+          {/* Banner: lien pour ouvrir sur mobile */}
+          {showMobileLinkBanner && (
+            <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#0F5257] text-white shadow-lg shadow-[#0F5257]/20 border border-emerald-800/40">
+                <div className="flex items-start sm:items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                    <Smartphone className="w-5 h-5 text-emerald-200" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold leading-tight">Ouvre VendsPartout sur ton téléphone</p>
+                    <p className="text-[11px] sm:text-xs text-emerald-100/90 mt-0.5 truncate">
+                      {shareUrl || 'Copie le lien de cette page et ouvre-le dans Safari / Chrome mobile'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 pl-0 sm:pl-2">
+                  <button
+                    onClick={handleCopyMobileLink}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-[#0B3C35] text-xs font-bold hover:bg-emerald-50 transition-colors"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copier le lien</span>
+                  </button>
+                  <button
+                    onClick={handleShareMobile}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-colors"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Partager</span>
+                  </button>
+                  <button
+                    onClick={() => setShowMobileLinkBanner(false)}
+                    className="p-2 rounded-xl hover:bg-white/10 text-white/80"
+                    aria-label="Fermer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <main className="flex-1">
             {renderMainContent()}
@@ -440,26 +526,51 @@ export default function App() {
             onNewArticle={() => setIsCameraModalOpen(true)}
             stats={stats}
             darkMode={darkMode}
+            annoncesCount={4}
           />
 
           {/* Footer (Desktop) */}
-          <footer className="hidden md:block border-t border-slate-200/80 dark:border-slate-800/80 py-8 mt-12 transition-colors">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+          <footer
+            className={`hidden md:block border-t py-8 mt-12 transition-colors ${
+              darkMode ? 'border-[#4A5A6E]' : 'border-slate-200/80'
+            }`}
+          >
+            <div
+              className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs ${
+                darkMode ? 'text-[#A8B6C8]' : 'text-slate-500'
+              }`}
+            >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-[#0F5257] text-white flex items-center justify-center font-bold text-xs">
                   VP
                 </div>
-                <span className="font-bold text-slate-700 dark:text-slate-300">VendsPartout v2</span>
-                <span>— Une photo. Des annonces prêtes.</span>
+                <span className={`font-bold ${darkMode ? 'text-[#F8FAFC]' : 'text-slate-700'}`}>
+                  VP VendsPartout v2 — Une photo. Des annonces prêtes.
+                </span>
               </div>
               <div className="flex items-center gap-6">
-                <button onClick={() => setActiveTab('how-it-works')} className="hover:underline">
+                <button
+                  onClick={() => setActiveTab('how-it-works')}
+                  className={`font-medium hover:underline ${
+                    darkMode ? 'text-emerald-400 hover:text-emerald-300' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
                   Sécurité & CGU
                 </button>
-                <button onClick={() => setActiveTab('pricing')} className="hover:underline">
+                <button
+                  onClick={() => setActiveTab('pricing')}
+                  className={`font-medium hover:underline ${
+                    darkMode ? 'text-emerald-400 hover:text-emerald-300' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
                   Tarifs & Abonnements
                 </button>
-                <button onClick={() => setIsSafeAccountModalOpen(true)} className="hover:underline">
+                <button
+                  onClick={() => setIsSafeAccountModalOpen(true)}
+                  className={`font-medium hover:underline ${
+                    darkMode ? 'text-emerald-400 hover:text-emerald-300' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
                   Compte protégé
                 </button>
               </div>

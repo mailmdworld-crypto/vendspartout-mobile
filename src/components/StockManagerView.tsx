@@ -21,15 +21,18 @@ interface StockManagerViewProps {
   onMarkAsSold: (id: string, soldPrice: number, platform: PlatformId) => void;
   onAddNew: () => void;
   onShowToast: (title: string, description?: string, type?: 'success' | 'info' | 'sparkles' | 'warning') => void;
+  forceMobileLayout?: boolean;
 }
 
 export const StockManagerView: React.FC<StockManagerViewProps> = ({
   items,
+  darkMode,
   onSelectItem,
   onDeleteItem,
   onMarkAsSold,
   onAddNew,
   onShowToast,
+  forceMobileLayout = false,
 }) => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'sold'>('all');
   const [showProfitCalculator, setShowProfitCalculator] = useState(false);
@@ -89,28 +92,32 @@ export const StockManagerView: React.FC<StockManagerViewProps> = ({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header & Quick Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className={`flex gap-4 ${forceMobileLayout ? 'flex-col' : 'flex-col sm:flex-row sm:items-center justify-between'}`}>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
               Mon Stock & Bénéfices
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className={`text-sm mt-1 ${darkMode ? 'text-slate-300' : 'text-slate-500'}`}>
               Suis tes marges nettes, tes articles en ligne et tes ventes conclues.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={() => setShowProfitCalculator(!showProfitCalculator)}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-xs transition-colors"
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border text-xs font-bold shadow-xs transition-colors ${
+                darkMode
+                  ? 'border-[#334155] bg-[#273549] text-[#F1F5F9] hover:bg-[#1E293B]'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
             >
-              <Sliders className="w-4 h-4 text-[#0F5257] dark:text-emerald-400" />
+              <Sliders className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-[#0F5257]'}`} />
               <span>Simulateur de Marge</span>
             </button>
 
             <button
               onClick={onAddNew}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#0F5257] hover:bg-[#0B3C35] text-white text-xs font-bold shadow-md shadow-[#0F5257]/20 transition-all hover:scale-102"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#0F5257] hover:bg-[#0B3C35] text-white text-xs font-bold shadow-md shadow-[#0F5257]/20 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Ajouter un article</span>
@@ -119,45 +126,45 @@ export const StockManagerView: React.FC<StockManagerViewProps> = ({
         </div>
 
         {/* 4 KPI Dashboard Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+        <div className={`grid gap-3 sm:gap-5 ${forceMobileLayout ? 'grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'}`}>
           
-          <div className="p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md">
+          <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-md ${darkMode ? 'bg-[#273549] border-[#334155]' : 'bg-white border-slate-200'}`}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${darkMode ? 'text-[#94A3B8]' : 'text-slate-400'}`}>
                 En vente active
               </span>
-              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${darkMode ? 'bg-[#1E293B] text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                 <Package className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <div className={`text-2xl sm:text-3xl font-extrabold ${darkMode ? 'text-[#F1F5F9]' : 'text-slate-900'}`}>
               {activeItems.length}
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">
+            <span className={`text-xs mt-1 block ${darkMode ? 'text-[#94A3B8]' : 'text-slate-500'}`}>
               Valeur : {potentialStockValue} €
             </span>
           </div>
 
-          <div className="p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md">
+          <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-md ${darkMode ? 'bg-[#273549] border-[#334155]' : 'bg-white border-slate-200'}`}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${darkMode ? 'text-[#94A3B8]' : 'text-slate-400'}`}>
                 Ventes conclues
               </span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${darkMode ? 'bg-[#1E293B] text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <div className={`text-2xl sm:text-3xl font-extrabold ${darkMode ? 'text-[#F1F5F9]' : 'text-slate-900'}`}>
               {soldItems.length}
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">
+            <span className={`text-xs mt-1 block ${darkMode ? 'text-[#94A3B8]' : 'text-slate-500'}`}>
               CA : {totalRevenue} €
             </span>
           </div>
 
-          <div className="p-5 rounded-2xl sm:rounded-3xl bg-[#0F5257] text-white shadow-xl shadow-[#0F5257]/20 border border-emerald-900/40 col-span-2 sm:col-span-1">
+          <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#0F5257] text-white shadow-xl shadow-[#0F5257]/20 border border-emerald-900/40 ${forceMobileLayout ? 'col-span-2' : 'col-span-2 sm:col-span-1'}`}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-200">
                 Bénéfice Net Encaissé
               </span>
               <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center">
@@ -172,19 +179,19 @@ export const StockManagerView: React.FC<StockManagerViewProps> = ({
             </span>
           </div>
 
-          <div className="p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md col-span-2 sm:col-span-1">
+          <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-md ${forceMobileLayout ? 'col-span-2' : 'col-span-2 sm:col-span-1'} ${darkMode ? 'bg-[#273549] border-[#334155]' : 'bg-white border-slate-200'}`}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${darkMode ? 'text-[#94A3B8]' : 'text-slate-400'}`}>
                 Rentabilité Moyenne
               </span>
-              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${darkMode ? 'bg-[#1E293B] text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
                 <TrendingUp className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <div className={`text-2xl sm:text-3xl font-extrabold ${darkMode ? 'text-[#F1F5F9]' : 'text-slate-900'}`}>
               {totalCostOfSold > 0 ? `+${Math.round((totalNetProfit / totalCostOfSold) * 100)}%` : '+220%'}
             </div>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1 block">
+            <span className={`text-xs font-semibold mt-1 block ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
               Multiplicateur x3.2
             </span>
           </div>
@@ -287,38 +294,27 @@ export const StockManagerView: React.FC<StockManagerViewProps> = ({
         )}
 
         {/* Filter Tabs */}
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className={`flex items-center justify-between border-b pb-3 overflow-x-auto ${darkMode ? 'border-[#334155]' : 'border-slate-200'}`}>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                filterStatus === 'all'
-                  ? 'bg-[#0F5257] text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Tous ({totalArticles})
-            </button>
-            <button
-              onClick={() => setFilterStatus('active')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                filterStatus === 'active'
-                  ? 'bg-[#0F5257] text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              En vente ({activeItems.length})
-            </button>
-            <button
-              onClick={() => setFilterStatus('sold')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                filterStatus === 'sold'
-                  ? 'bg-[#0F5257] text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Vendus ({soldItems.length})
-            </button>
+            {([
+              { key: 'all' as const, label: `Tous (${totalArticles})` },
+              { key: 'active' as const, label: `En vente (${activeItems.length})` },
+              { key: 'sold' as const, label: `Vendus (${soldItems.length})` },
+            ]).map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFilterStatus(tab.key)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
+                  filterStatus === tab.key
+                    ? 'bg-[#0F5257] text-white'
+                    : darkMode
+                    ? 'text-[#94A3B8] hover:bg-[#273549] hover:text-[#F1F5F9]'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 

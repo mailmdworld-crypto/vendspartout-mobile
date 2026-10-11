@@ -1,60 +1,151 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  /*
+   * Soft Dark PLUS CLAIR
+   * bg #2A3544 | alt #323E50 | card #3A4759 | border #4A5A6E
+   * text #F8FAFC | muted #A8B6C8 | forest #0F5257
+   */
+  html.dark,
+  html.dark body {
+    background-color: #2A3544 !important;
+    color: #F8FAFC;
   }
 }
 
+/* Soft dark remaps — lighter slate */
+html.dark .bg-slate-900,
+html.dark .bg-slate-950,
+html.dark .bg-black {
+  background-color: #3A4759 !important;
+}
+
+html.dark .bg-slate-900\/90,
+html.dark .bg-slate-900\/80,
+html.dark .bg-slate-900\/70,
+html.dark .bg-slate-900\/60,
+html.dark .bg-slate-900\/50 {
+  background-color: rgba(58, 71, 89, 0.94) !important;
+}
+
+html.dark .bg-slate-800,
+html.dark .bg-slate-800\/80,
+html.dark .bg-slate-800\/60 {
+  background-color: #323E50 !important;
+}
+
+html.dark .border-slate-800,
+html.dark .border-slate-700,
+html.dark .border-slate-900 {
+  border-color: #4A5A6E !important;
+}
+
+html.dark .text-slate-400,
+html.dark .text-slate-500 {
+  color: #A8B6C8 !important;
+}
+
+html.dark .text-slate-300 {
+  color: #D0D8E4 !important;
+}
+
+html.dark .text-\[\#0F5257\] {
+  color: #34D399 !important;
+}
+
+html.dark .bg-\[\#122320\],
+html.dark .bg-\[\#0F1715\],
+html.dark .bg-\[\#15201E\],
+html.dark .bg-\[\#0A332D\],
+html.dark .bg-\[\#182232\],
+html.dark .bg-\[\#1E293B\],
+html.dark .bg-\[\#273549\] {
+  background-color: #3A4759 !important;
+}
+
 @keyframes scan-line {
-  0% {
-    top: 0%;
-    opacity: 0.8;
-  }
-  50% {
-    top: 96%;
-    opacity: 1;
-  }
-  100% {
-    top: 0%;
-    opacity: 0.8;
-  }
+  0% { top: 0%; opacity: 0.8; }
+  50% { top: 96%; opacity: 1; }
+  100% { top: 0%; opacity: 0.8; }
 }
 
 .animate-scan {
   animation: scan-line 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@keyframes float-subtle {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-.animate-float {
-  animation: float-subtle 4s ease-in-out infinite;
-}
-
-/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 82, 87, 0.2);
+  background: rgba(15, 82, 87, 0.28);
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 82, 87, 0.4);
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(168, 182, 200, 0.4);
 }
 
-/* Safe area padding for mobile standalone view */
 .pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0.35rem));
+}
+
+/* Hide horizontal scrollbar on pill tabs */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-first layout guards */
+@media (max-width: 640px) {
+  .feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  .mobile-full {
+    width: 100% !important;
+  }
+}
+
+/* Phone simulator frame */
+.phone-frame {
+  container-type: inline-size;
+  container-name: phone;
+  position: relative;
+}
+
+.phone-frame .bottom-nav-bar {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+@container phone (max-width: 500px) {
+  .feature-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
