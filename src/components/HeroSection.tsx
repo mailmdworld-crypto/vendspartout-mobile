@@ -29,7 +29,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Main Forest Green Rounded Hero Card - Exact Maquette v2 */}
-        <div className="relative overflow-hidden rounded-[26px] sm:rounded-[32px] bg-gradient-to-br from-[#0B3C35] via-[#0F5257] to-[#0A332D] text-white p-6 sm:p-10 lg:p-12 shadow-2xl shadow-[#0B3C35]/25 border border-emerald-900/40">
+        <div className="relative overflow-hidden rounded-[20px] sm:rounded-[32px] bg-gradient-to-br from-[#0B3C35] via-[#0F5257] to-[#0A332D] text-white p-5 sm:p-10 lg:p-12 shadow-2xl shadow-[#0B3C35]/25 border border-emerald-900/40">
           
           {/* Subtle Organic Background Ambient Glow */}
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />

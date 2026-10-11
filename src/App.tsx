@@ -334,7 +334,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'bg-[#0F1715] text-slate-100' : 'bg-[#F4F7F5] text-slate-800'}`}>
+    <div className={`min-h-screen transition-colors duration-200 overflow-x-hidden ${darkMode ? 'bg-[#1A2220] text-slate-100' : 'bg-[#F4F7F5] text-slate-800'}`}>
       
       {/* Toast notifications */}
       <Toast toasts={toasts} onDismiss={handleDismissToast} />
